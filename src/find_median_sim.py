@@ -12,7 +12,7 @@ with open('config.yaml', 'r') as f:
 
 NRUN = 100
 
-def make_prediction_for_each_combo(i: int, indf: pd.DataFrame, data_dir: str, pred_dir: str):
+def make_prediction_for_each_combo(i: int, indf: pd.DataFrame, data_dir: str, pred_dir: str, waterfall=False):
     name_a = indf.at[i, 'Experimental']
     name_b = indf.at[i, 'Control']
     corr = indf.at[i, 'Corr']  # experimental spearman correlation value
@@ -74,7 +74,7 @@ if __name__ == '__main__':
     outfile = config_dict['metadata_sheet_seed']
     
     indf = pd.read_csv(sheet, sep='\t')
-
+    is_waterfall = (args.dataset == 'waterfall')
     with tempfile.TemporaryDirectory(dir=table_dir) as temp_dir:
-        make_predictions_diff_seeds(indf, data_dir, temp_dir)
+        make_predictions_diff_seeds(indf, data_dir, temp_dir, waterfall=is_waterfall)
         find_median_sim(indf, temp_dir, save=True, outfile=outfile)

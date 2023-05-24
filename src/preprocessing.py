@@ -149,7 +149,7 @@ def sanity_check_everything(dataset: str):
                 name = indf.at[i, cols[k]]
                 ori = raw_import(f'{raw_dir}/{name}.csv')
                 ori.columns = ['Time', 'Survival']
-                new = preprocess_survival_data(f'{raw_dir}/{name}.csv')
+                new = pd.read_csv(f'{data_dir}/{name}.clean.csv', header=0)
                 axes[i, k] = sanity_check_plot(ori, new, axes[i, k])
             except:
                 print(name)
@@ -168,7 +168,10 @@ def preprocess_combinations(dataset: str):
         for k in range(len(cols)):
             name = indf.at[i, cols[k]]
             try:
-                new = preprocess_survival_data(f'{raw_dir}/{name}.csv')
+                if dataset == 'waterfall':
+                    new = preprocess_waterfall_data(f'{raw_dir}/{name}.csv')
+                else:
+                    new = preprocess_survival_data(f'{raw_dir}/{name}.csv')
             except UnicodeDecodeError:
                 print(f"UnicodeDecodeError in {name}")
             new.round(5).to_csv(f'{output_dir}/{name}.clean.csv', index=False)
@@ -207,10 +210,8 @@ def stand_alone():
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('dataset', type=str, 
-                        help='Dataset to use (approved, all_phase3, placebo')
+                        help='Dataset to use (PFS, rPFS, waterfall')
     args = parser.parse_args()
-    if args.dataset == 'placebo':
-        preprocess_placebo()
-    else:
-        preprocess_combinations(args.dataset)
-        sanity_check_everything(args.dataset)
+
+    preprocess_combinations(args.dataset)
+    sanity_check_everything(args.dataset)

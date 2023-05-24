@@ -207,16 +207,16 @@ def main():
     parser.add_argument('dataset', type=str,
                         help='Dataset to use (approved, all_phase3')
     args = parser.parse_args()
-    config_dict = CONFIG[args.dataset]
 
-    cox_df = pd.read_csv(config_dict['cox_result'], index_col=None)
+    is_waterfall = (args.dataset == 'waterfall')
+    config_dict = CONFIG[args.dataset]
+    sheet = pd.read_csv(config_dict['metadata_sheet'], index_col=None, header=0, sep='\t')
     data_dir = config_dict['data_dir']
     pred_dir = config_dict['pred_dir']
     fig_dir = config_dict['fig_dir']
     fig = plot_all_curves(sheet, data_dir, pred_dir, waterfall=is_waterfall)
 
     fig.savefig(f'{fig_dir}/{args.dataset}_survival_plots.pdf',
-                    bbox_inches='tight', pad_inches=0.1)
                     bbox_inches='tight', pad_inches=0.1)
 
 
