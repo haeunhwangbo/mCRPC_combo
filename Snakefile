@@ -60,41 +60,15 @@ rPFS_PRED_FILES =  expand(f"{config['rPFS']['pred_dir']}/{{pred}}_combination_pr
 PSA_PRED_FILES =  expand(f"{config['waterfall']['pred_dir']}/{{pred}}_combination_predicted_{{model}}.csv", 
                          pred=get_pred_list("waterfall"), model=['ind'])
 
-
-"""
-
 rule all:
     input:
-        f"{config['approved']['fig_dir']}/forest_plot.pdf",
-        f"{config['approved']['fig_dir']}/additive_survival_plots.pdf",
-        f"{config['approved']['fig_dir']}/between_survival_plots.pdf",
-        f"{config['approved']['fig_dir']}/hsa_survival_plots.pdf",
-        f"{config['approved']['fig_dir']}/all_combo_qqplot.pdf",
-        f"{config['approved']['fig_dir']}/r2_histogram.pdf",
-        f"{config['approved']['fig_dir']}/msd_histogram.pdf",
-        f"{config['approved']['fig_dir']}/ici_boxplot.pdf",
-        f"{config['approved']['fig_dir']}/angiogenesis_boxplot.pdf",
-        f"{config['approved']['fig_dir']}/monotherapy_approval_boxplot.pdf",
-        f"{config['approved']['fig_dir']}/HRmedian_boxplot.pdf",
-        f"{config['placebo']['fig_dir']}/placebo_survival_plots.pdf",
-        f"{config['approved']['fig_dir']}/relative_doses.pdf",
-        f"{config['approved']['fig_dir']}/suppl_additive_survival_plots.pdf",
-        f"{config['approved']['fig_dir']}/suppl_between_hsa_survival_plots.pdf",
-        f"{config['fig_dir']}/HR_combo_control_scatterplot.pdf",
-        f"{config['table_dir']}/HR_predicted_vs_control.csv",
-        f"{config['approved']['fig_dir']}/explain_HSA_additive_difference.pdf",
-        f"{config['approved']['table_dir']}/added_benefit_hsa_add_syn.csv",
-        f"{config['approved']['fig_dir']}/hsa_additivity_sigma.pdf",        
-        f"{config['fig_dir']}/CRC_cetuximab_5FU_BestAvgResponse_corr.pdf",
-        f"{config['fig_dir']}/Dabrafenib_Trametinib_AUC_corr.pdf",
-        f"{config['fig_dir']}/CTRPv2_corr_distributions.pdf",
-        f"{config['table_dir']}/experimental_correlation_report.csv",
-        f"{config['approved']['table_dir']}/AIC.csv",
-        f"{config['all_phase3']['fig_dir']}/roc_curve.pdf",
-        f"{config['all_phase3']['table_dir']}/predictive_power.csv",
-        f"{config['all_phase3']['fig_dir']}/additivity_prob_success_swarm_plot.pdf"
-
-"""
+        f"{config['PFS']['table_dir']}/PFS_predictive_power.csv",
+        f"{config['rPFS']['table_dir']}/rPFS_predictive_power.csv",
+        f"{config['PFS']['fig_dir']}/PFS_survival_plots.pdf",
+        f"{config['rPFS']['fig_dir']}/rPFS_survival_plots.pdf",
+        f"{config['waterfall']['fig_dir']}/waterfall_survival_plots.pdf",
+        f'{FIG_DIR}/CTRPv2_corr_distributions.pdf',
+        f'{TABLE_DIR}/experimental_correlation_report.csv'
 
 rule preprocess:
     input:
