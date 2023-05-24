@@ -138,6 +138,7 @@ def sanity_check_everything(dataset: str):
     config_dict = CONFIG[dataset]
     sheet = config_dict['metadata_sheet']
     raw_dir = config_dict['raw_dir']
+    data_dir = config_dict['data_dir']
     fig_dir = config_dict['fig_dir']
     indf = pd.read_csv(sheet, sep='\t')
     #cols = ['Experimental', 'Control', 'Combination']

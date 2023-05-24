@@ -3,7 +3,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import matplotlib.ticker as plticker
-from plot_utils import get_model_colors
 import warnings
 import argparse
 import yaml
@@ -13,6 +12,22 @@ with open('config.yaml', 'r') as f:
 
 warnings.filterwarnings("ignore")
 plt.style.use('env/publication.mplstyle')
+
+
+def get_model_colors() -> dict:
+    """Returns preset colors for trial arms. Keywords are HSA, additive, control, experimental, and combo.
+
+    Returns:
+        dict: color dictionary
+    """
+    # define colors
+    blue = [i/255 for i in (0, 128, 255)]  # hsa
+    red = [i/255 for i in (200, 0, 50)]  # additivity
+
+    color_dict = {'HSA': blue, 'additive': red, 'control': 'orange',
+                  'experimental': 'green', 'combo': 'black'}
+    return color_dict
+
 
 def set_tmax(df_a, df_b):
     """Set maximum follow-up time.
