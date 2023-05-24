@@ -198,19 +198,15 @@ def get_distribution_report(all_pairs: np.array, cyto_pairs: np.array,
 
     
 def main():
-    pdx_df, tumor_types = import_pdx_data()
-    drug1, drug2 = 'cetuximab', '5FU'
-    fig = draw_corr_pdx(pdx_df, tumor_types, drug1, drug2)
-    fig.savefig(f'{FIG_DIR}/CRC_{drug1}_{drug2}_BestAvgResponse_corr.pdf',
-                bbox_inches='tight', pad_inches=0.1)
-
     # use cell line data (CTRPv2)
     cell_info, drug_info, cancer_type, ctrp = import_ctrp_data()
-    drug_pairs = [('5-Fluorouracil', 'Docetaxel'), ('5-Fluorouracil', 'Lapatinib'),
-                  ('Gemcitabine', 'Oxaliplatin'), ('Methotrexate', 'Oxaliplatin'),
-                  ('5-Fluorouracil', 'Topotecan'), ('5-Fluorouracil', 'Oxaliplatin'),
-                  ('nintedanib', 'Docetaxel'), ('Ifosfamide', 'Doxorubicin'),
-                  ('Lapatinib', 'Paclitaxel') , ('Selumetinib', 'Dacarbazine')]
+
+    drug_pairs = [('Docetaxel',	'Itraconazole'),
+                  ('Docetaxel', 'tivantinib'),
+                  ('Itraconazole', 'tivantinib'),
+                  ('Docetaxel', 'Olaparib'),
+                  ('Docetaxel', 'Dasatinib')]
+    
     for drug1, drug2 in drug_pairs:
         fig = draw_corr_cell(ctrp, cancer_type, drug1, drug2)
         fig.savefig(f'{FIG_DIR}/{drug1}_{drug2}_AUC_corr.pdf')
