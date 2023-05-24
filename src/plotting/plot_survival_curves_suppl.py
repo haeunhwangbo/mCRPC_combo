@@ -72,8 +72,8 @@ def plot_survivals(df_control, df_exp, df_combo, df_add, df_ind, ax, label=None)
             alpha=0.5, color=color_dict['control'], linewidth=1)
     ax.plot(df_exp['Time'], df_exp['Survival'],
             alpha=0.5, color=color_dict['experimental'], linewidth=1)
-    ax.plot(df_combo['Time'], df_combo['Survival'], color=color_dict['combo'], linewidth=1.5)
-    ax.plot(df_ind['Time'], df_ind['Survival'], color=color_dict['HSA'], linewidth=1.5)
+    ax.plot(df_combo['Time'], df_combo['Survival'],
+            color=color_dict['combo'], linewidth=1.5)
     ax.plot(df_add['Time'], df_add['Survival'], color=color_dict['additive'], linewidth=1.5)
     if label is not None:
         ax.set_title(make_label(label))
@@ -104,10 +104,8 @@ def plot_additivity_suppl(cox_df: pd.DataFrame, data_dir: str, pred_dir: str) ->
     for i in range(tmp.shape[0]):
         name_a = tmp.at[i, 'Experimental']
         name_b = tmp.at[i, 'Control']
-        name_ab = tmp.at[i, 'Combination']
 
         # import data
-        obs_ab = pd.read_csv(f'{data_dir}/{name_ab}.clean.csv')
         obs_exp = pd.read_csv(f'{data_dir}/{name_a}.clean.csv')
         obs_ctrl = pd.read_csv(f'{data_dir}/{name_b}.clean.csv')
         independent = pd.read_csv(
@@ -180,10 +178,9 @@ def plot_between_hsa_suppl(cox_df: pd.DataFrame, data_dir: str, pred_dir: str) -
     for i in range(tmp.shape[0]):
         name_a = tmp.at[i, 'Experimental']
         name_b = tmp.at[i, 'Control']
-        name_ab = tmp.at[i, 'Combination']
+        label = tmp.at[i, 'label']
 
         # import data
-        obs_ab = pd.read_csv(f'{data_dir}/{name_ab}.clean.csv')
         obs_exp = pd.read_csv(f'{data_dir}/{name_a}.clean.csv')
         obs_ctrl = pd.read_csv(f'{data_dir}/{name_b}.clean.csv')
         independent = pd.read_csv(f'{pred_dir}/{name_a}-{name_b}_combination_predicted_ind.csv')

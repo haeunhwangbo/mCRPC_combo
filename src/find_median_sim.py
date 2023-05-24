@@ -15,15 +15,12 @@ NRUN = 100
 def make_prediction_for_each_combo(i: int, indf: pd.DataFrame, data_dir: str, pred_dir: str):
     name_a = indf.at[i, 'Experimental']
     name_b = indf.at[i, 'Control']
-    name_ab = indf.at[i, 'Combination']
     corr = indf.at[i, 'Corr']  # experimental spearman correlation value
 
     df_a = pd.read_csv(f'{data_dir}/{name_a}.clean.csv',
                     header=0, index_col=False)
     df_b = pd.read_csv(f'{data_dir}/{name_b}.clean.csv',
                     header=0, index_col=False)
-    df_ab = pd.read_csv(f'{data_dir}/{name_ab}.clean.csv',
-                        header=0, index_col=False)
     # subtract initial scan time of the larger one
     scan_a = indf.at[i, 'Experimental First Scan Time']
     scan_b = indf.at[i, 'Control First Scan Time']

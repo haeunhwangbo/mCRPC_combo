@@ -140,8 +140,9 @@ def sanity_check_everything(dataset: str):
     raw_dir = config_dict['raw_dir']
     fig_dir = config_dict['fig_dir']
     indf = pd.read_csv(sheet, sep='\t')
-    cols = ['Experimental', 'Control', 'Combination']
-    fig, axes = plt.subplots(indf.shape[0], 3, figsize=(6, 30))
+    #cols = ['Experimental', 'Control', 'Combination']
+    cols = ['Experimental', 'Control']
+    fig, axes = plt.subplots(indf.shape[0], len(cols), figsize=(6, 30))
     for i in range(indf.shape[0]):
         for k in range(len(cols)):
             try:
@@ -161,7 +162,8 @@ def preprocess_combinations(dataset: str):
     raw_dir = config_dict['raw_dir']
     output_dir = config_dict['data_dir']
     indf = pd.read_csv(sheet, sep='\t')
-    cols = ['Experimental', 'Control', 'Combination']
+    #cols = ['Experimental', 'Control', 'Combination']
+    cols = ['Experimental', 'Control']
     for i in range(indf.shape[0]):
         for k in range(len(cols)):
             name = indf.at[i, cols[k]]
