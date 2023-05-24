@@ -61,7 +61,7 @@ def plot_survivals(df_control, df_exp, df_combo, df_add, df_ind, ax, label=None)
 
     Returns:
         plt.axes: plotted axes
-    """    
+    """
     ticks = [0, 50, 100]
     color_dict = get_model_colors()
     # set same max time
@@ -74,7 +74,10 @@ def plot_survivals(df_control, df_exp, df_combo, df_add, df_ind, ax, label=None)
             alpha=0.5, color=color_dict['experimental'], linewidth=1)
     ax.plot(df_combo['Time'], df_combo['Survival'],
             color=color_dict['combo'], linewidth=1.5)
-    ax.plot(df_add['Time'], df_add['Survival'], color=color_dict['additive'], linewidth=1.5)
+    ax.plot(df_ind['Time'], df_ind['Survival'],
+            color=color_dict['HSA'], linewidth=1.5)
+    ax.plot(df_add['Time'], df_add['Survival'],
+            color=color_dict['additive'], linewidth=1.5)
     if label is not None:
         ax.set_title(make_label(label))
     ax.set_xlabel('')
@@ -87,31 +90,45 @@ def plot_survivals(df_control, df_exp, df_combo, df_add, df_ind, ax, label=None)
     return ax
 
 
-def plot_additivity_suppl(cox_df: pd.DataFrame, data_dir: str, pred_dir: str) -> plt.figure:
-    tmp = cox_df[(cox_df['Model'] == 'additive') |
-                 (cox_df['Model'] == 'synergy')]
+def plot_survivals_hsa_only(df_control, df_exp, df_ind, ax, df_combo=None, label=None):
+    """Helper function to plot survival curves. Plots survival on Axes object.
 
-    # sort by cancer types
-    tmp = tmp.sort_values(by=['Model', 'Combination'],
-                          ascending=[False, True]).reset_index()
-    cols = 3
-    rows = int(np.ceil(tmp.shape[0]/cols))
-    fig, axes = plt.subplots(rows, cols, sharey=True, 
-                             figsize=(7, 10), subplot_kw=dict(box_aspect=0.5), dpi=600)
-    sns.despine()
-    flat_axes = axes.flatten()
+    Args:
+        df_control (pd.DataFrame): control drug survival data
+        df_exp (pd.DataFrame): exerimental drug survival data
+        df_ind (pd.DataFrame): HSA survival data
+                ax (plt.axes): axes to plot the survival curves on
+        df_combo (pd.DataFrame): combination survival data. Defaults to None.
+        label (str, optional): _description_. Defaults to None.
 
-    for i in range(tmp.shape[0]):
-        name_a = tmp.at[i, 'Experimental']
-        name_b = tmp.at[i, 'Control']
+    Returns:
+        plt.axes: plotted axes
+    """    
+    ticks = [0, 50, 100]
+    color_dict = get_model_colors()
+    # set same max time
+    tmax = set_tmax(df_exp, df_control)
 
-        # import data
-        obs_exp = pd.read_csv(f'{data_dir}/{name_a}.clean.csv')
-        obs_ctrl = pd.read_csv(f'{data_dir}/{name_b}.clean.csv')
-        independent = pd.read_csv(
-            f'{pred_dir}/{name_a}-{name_b}_combination_predicted_ind.csv')
-        additive = pd.read_csv(
-            f'{pred_dir}/{name_a}-{name_b}_combination_predicted_add.csv')
+    ### plot
+    ax.plot(df_control['Time'], df_control['Survival'],
+            alpha=0.5, color=color_dict['control'], linewidth=1)
+    ax.plot(df_exp['Time'], df_exp['Survival'],
+            alpha=0.5, color=color_dict['experimental'], linewidth=1)
+    if df_combo is not None:
+        ax.plot(df_combo['Time'], df_combo['Survival'], color=color_dict['combo'], linewidth=1.5)
+    ax.plot(df_ind['Time'], df_ind['Survival'], color=color_dict['HSA'], linewidth=1.5)
+    if label is not None:
+        ax.set_title(label)
+    ax.set_xlabel('')
+    ax.set_xlim(0, tmax - 0.5)
+    ax.set_ylim(0, 105)
+    ax.set_yticks(ticks)
+    ax.xaxis.set_major_locator(plticker.MultipleLocator(6))
+    ax.axes.xaxis.set_ticklabels([])
+
+    return ax
+
+
 def plot_waterfall_hsa_only(df_control, df_exp, df_ind, ax, df_combo=None, label=None):
     """Helper function to plot waterfall curves. Plots survival on Axes object.
 
@@ -151,21 +168,13 @@ def plot_waterfall_hsa_only(df_control, df_exp, df_ind, ax, df_combo=None, label
 
     return ax
 
-def plot_between_hsa_suppl(cox_df: pd.DataFrame, data_dir: str, pred_dir: str) -> plt.figure:
-    tmp1 = cox_df[(cox_df['Model'] == 'between')]
-    # sort by cancer types
-    tmp1 = tmp1.sort_values('Combination').reset_index(drop=True)
 
-    tmp2 = cox_df[(cox_df['Model'] == 'independent') | (
-        cox_df['Model'] == 'worse than independent')]
-    # sort by cancer types
-    tmp2 = tmp2.sort_values(['Model', 'Combination'], ascending=[
-                            True, True]).reset_index(drop=True)
-    tmp = pd.concat([tmp1, tmp2], axis=0).reset_index(drop=True)
+def plot_all_curves(sheet: pd.DataFrame, data_dir: str, pred_dir: str, waterfall=False) -> plt.figure:
 
+    tmp = sheet
     cols = 3
     rows = int(np.ceil(tmp.shape[0]/cols))
-
+    
     if waterfall:
         figsize = (7, rows*3)
     else:
@@ -183,8 +192,8 @@ def plot_between_hsa_suppl(cox_df: pd.DataFrame, data_dir: str, pred_dir: str) -
         # import data
         obs_exp = pd.read_csv(f'{data_dir}/{name_a}.clean.csv')
         obs_ctrl = pd.read_csv(f'{data_dir}/{name_b}.clean.csv')
-        independent = pd.read_csv(f'{pred_dir}/{name_a}-{name_b}_combination_predicted_ind.csv')
-        additive = pd.read_csv(f'{pred_dir}/{name_a}-{name_b}_combination_predicted_add.csv')
+        independent = pd.read_csv(
+            f'{pred_dir}/{name_a}-{name_b}_combination_predicted_ind.csv')
         if waterfall:
             flat_axes[i] = plot_waterfall_hsa_only(obs_ctrl, obs_exp, independent, ax=flat_axes[i], label=label)
         else:

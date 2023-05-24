@@ -69,7 +69,6 @@ def set_tmax(df_a: pd.DataFrame, df_b: pd.DataFrame, df_ab: pd.DataFrame) -> flo
         tmax = min(df_a['Time'].max(), df_b['Time'].max())
     return tmax
 
-
 def predict_both(df_a: pd.DataFrame, df_b: pd.DataFrame, 
                  name_a: str, name_b: str, subtracted: str, scan_time: float, 
                  df_ab=None, N=5000, rho=0.3, seed_ind=0, seed_add=0, save=True, outdir=None) -> tuple:
@@ -134,6 +133,58 @@ def predict_both(df_a: pd.DataFrame, df_b: pd.DataFrame,
     return (independent, additivity)
 
 
+def predict_hsa(df_a: pd.DataFrame, df_b: pd.DataFrame,
+                name_a: str, name_b: str,
+                df_ab=None, waterfall=False, N=5000, rho=0.3, seed_ind=0, save=True, outdir=None) -> tuple:
+    """ Predict combination effect using HSA model and writes csv output.
+
+    Args:
+        df_a (pd.DataFrame): survival data for treatment A (Experimental)
+        df_b (pd.DataFrame): survival data for treatment B (Control)
+        name_a (str): treatment A name
+        name_b (str): treatment B name
+        df_ab (pd.DataFrame, optional): survival data for treatment A+B. Defaults to None.
+        N (int, optional): number of virtual patients. Defaults to 5000.
+        rho (float, optional): correlation value. Defaults to 0.3.
+        seed_ind (int): random generator seed for independent model. Defaults to 0.
+        save (bool): export data to csv. Defaults to True.
+        outdir (str): directory to save exported data. If None, save in current directory. Defaults to None. 
+    
+    Returns:
+        pd.DataFrame : HSA prediction
+    """
+    a = populate_N_patients(df_a, N)
+    b = populate_N_patients(df_b, N)
+
+    patients = a['Survival'].values
+    rng_ind = np.random.default_rng(seed_ind)
+    new_ind_a, new_ind_b = fit_rho3(
+        a['Time'].values, b['Time'].values, rho, rng_ind)
+    independent = pd.DataFrame({'Time': sample_joint_response(new_ind_a, new_ind_b, waterfall=waterfall),
+                                'Survival': patients})
+
+    
+    independent = independent.sort_values(
+        'Survival', ascending=True).reset_index(drop=True)
+
+    if df_ab is not None:
+        tmax = set_tmax(df_a, df_b, df_ab)
+    else:
+        tmax = min(df_a['Time'].max(), df_b['Time'].max())
+
+    independent.loc[independent['Time'] > tmax, 'Time'] = tmax
+
+    if save == True:
+        if outdir is not None:
+            independent.round(5).to_csv(f'{outdir}/{name_a}-{name_b}_combination_predicted_ind.csv',
+                                        index=False)
+        else:
+            independent.round(5).to_csv(f'{name_a}-{name_b}_combination_predicted_ind.csv',
+                                        index=False)
+
+    return independent
+
+
 def subtract_which_scan_time(scan_a: float, scan_b: float) -> tuple:
     """Determines which monotherapy scan time to subtract.
 
@@ -175,22 +226,13 @@ def main():
     for i in indf.index:
         name_a = indf.at[i, 'Experimental']
         name_b = indf.at[i, 'Control']
-        name_ab = indf.at[i, 'Combination']
         corr = indf.at[i, 'Corr']  # experimental spearman correlation value
         # random generator seed that results in median of 100 simulations
         seed_ind = indf.at[i, 'ind_median_run']
-        seed_add = indf.at[i, 'add_median_run']
         df_a = pd.read_csv(f'{data_dir}/{name_a}.clean.csv',
                            header=0, index_col=False)
         df_b = pd.read_csv(f'{data_dir}/{name_b}.clean.csv',
                            header=0, index_col=False)
-        df_ab = pd.read_csv(f'{data_dir}/{name_ab}.clean.csv',
-                            header=0, index_col=False)
-        # subtract initial scan time of the larger one
-        scan_a = indf.at[i, 'Experimental First Scan Time']
-        scan_b = indf.at[i, 'Control First Scan Time']
-
-        subtracted, scan_time = subtract_which_scan_time(scan_a, scan_b)
 
         predict_hsa(df_a, df_b, name_a, name_b,
                      df_ab=None, waterfall=is_waterfall, rho=corr, seed_ind=seed_ind, outdir=pred_dir)
