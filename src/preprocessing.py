@@ -29,6 +29,54 @@ def raw_import(filepath: str) -> pd.DataFrame:
     return df
 
 
+def raw_import_waterfall(filepath: str) -> pd.DataFrame:
+    with open(filepath, 'r') as f:
+        cols = len(f.readline().split(','))
+    assert cols == 2
+
+    df = pd.read_csv(filepath, header=0, index_col=False)
+    # change column names
+    # Be aware: Survival = Patients (0-100), Time = PSA change (-100 to )
+    if not ('Time' in df.columns and 'Survival' in df.columns):
+        df.columns = ['Survival', 'Time']
+    # if survival is in 0-1 scale, convert to 0-100
+    if df['Survival'].max() <= 1.1:
+        df.loc[:, 'Survival'] = df['Survival'] * 100
+
+    df = df[['Time', 'Survival']]
+    if df.loc[df['Survival'].idxmin(), 'Time'] < df.loc[df['Survival'].idxmax(), 'Time']: # if ascending
+        df.loc[:, 'Survival'] = 100 - df['Survival'] # flip order of the survival to make it descending
+    return df
+
+
+def preprocess_waterfall_data(filepath: str) -> pd.DataFrame:
+    """ 
+    Args:
+        filepath (str): path to waterfall data file
+
+    Returns:
+        pd.DataFrame: returned data frame
+    """
+
+    df = raw_import_waterfall(filepath)
+    # normalize everything to [0, 100]
+    df.loc[:, 'Survival'] = 100 * df['Survival'] / df['Survival'].max()
+    df.loc[df['Survival'] < 0, 'Survival'] = 0
+    df.loc[df['Time'] < -100, 'Time'] = -100
+
+    # make sure survival is in increasing order
+    if df.iat[-1, 1] < df.iat[0, 1]:
+        df = df.sort_values(['Survival'], ascending=True).drop_duplicates()
+        df = df.reset_index(drop=True)
+
+    # enforce monotinicity
+    df.loc[:, 'Survival'] = np.maximum.accumulate(
+        df['Survival'].values)  # monotonic increasing
+    df.loc[:, 'Time'] = np.minimum.accumulate(
+        df['Time'].values)  # monotonic decreasing
+    return df
+
+
 def preprocess_survival_data(filepath: str) -> pd.DataFrame:
     """ Import survival data either having two columns (time, survival) or one
     column (time)

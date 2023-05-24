@@ -35,7 +35,7 @@ def sample_joint_response_add(ori_a: pd.DataFrame, ori_b: pd.DataFrame,
     return sorted(predicted, reverse=True)
 
 
-def sample_joint_response(ori_a: pd.DataFrame, ori_b: pd.DataFrame) -> list:
+def sample_joint_response(ori_a: pd.DataFrame, ori_b: pd.DataFrame, waterfall=False) -> list:
     """ Calculate predicted PFS time for n-patients in combination therapy under HSA.
 
     Args:
@@ -45,7 +45,10 @@ def sample_joint_response(ori_a: pd.DataFrame, ori_b: pd.DataFrame) -> list:
     Returns:
         list: list of predicted PFS for n-patients in combination therapy under HSA
     """
-    return sorted(np.maximum(ori_a, ori_b), reverse=True)
+    if waterfall: 
+        return sorted(np.minimum(ori_a, ori_b), reverse=True)
+    else:
+        return sorted(np.maximum(ori_a, ori_b), reverse=True)
 
 
 def set_tmax(df_a: pd.DataFrame, df_b: pd.DataFrame, df_ab: pd.DataFrame) -> float:
@@ -157,7 +160,7 @@ def subtract_which_scan_time(scan_a: float, scan_b: float) -> tuple:
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('dataset', type=str, 
-                        help='Dataset to use (approved, all_phase3, placebo')
+                        help='Dataset to use (PFS, rPFS, waterfall)')
     args = parser.parse_args()
     
     config_dict = CONFIG[args.dataset]
@@ -166,6 +169,9 @@ def main():
     pred_dir = config_dict['pred_dir']
 
     indf = pd.read_csv(sheet, sep='\t')
+
+    is_waterfall = (args.dataset == 'waterfall')
+
     for i in indf.index:
         name_a = indf.at[i, 'Experimental']
         name_b = indf.at[i, 'Control']
@@ -186,8 +192,8 @@ def main():
 
         subtracted, scan_time = subtract_which_scan_time(scan_a, scan_b)
 
-        predict_both(df_a, df_b, name_a, name_b, subtracted, scan_time,
-                     df_ab=df_ab, rho=corr, seed_ind=seed_ind, seed_add=seed_add, outdir=pred_dir)
+        predict_hsa(df_a, df_b, name_a, name_b,
+                     df_ab=None, waterfall=is_waterfall, rho=corr, seed_ind=seed_ind, outdir=pred_dir)
 
 
 if __name__ == "__main__":

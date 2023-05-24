@@ -114,12 +114,44 @@ def plot_additivity_suppl(cox_df: pd.DataFrame, data_dir: str, pred_dir: str) ->
             f'{pred_dir}/{name_a}-{name_b}_combination_predicted_ind.csv')
         additive = pd.read_csv(
             f'{pred_dir}/{name_a}-{name_b}_combination_predicted_add.csv')
+def plot_waterfall_hsa_only(df_control, df_exp, df_ind, ax, df_combo=None, label=None):
+    """Helper function to plot waterfall curves. Plots survival on Axes object.
 
-        plot_survivals(obs_ctrl, obs_exp, obs_ab, additive,
-                    independent, flat_axes[i], label=name_ab)
+    Args:
+        df_control (pd.DataFrame): control drug waterfall data
+        df_exp (pd.DataFrame): exerimental drug waterfall data
+        df_ind (pd.DataFrame): HSA waterfall data
+        ax (plt.axes): axes to plot the waterfall curves on
+        df_combo (pd.DataFrame): combination waterfall data. Defaults to None.
+        label (str, optional): _description_. Defaults to None.
 
-    return fig
+    Returns:
+        plt.axes: plotted axes
+    """
+    ticks = [-100, -50, 0, 50, 100]
+    color_dict = get_model_colors()
+    # set same max time
+    tmax = set_tmax(df_exp, df_control)
 
+    ### plot
+    ax.plot(df_control['Survival'], df_control['Time'],
+            alpha=0.5, color=color_dict['control'], linewidth=1)
+    ax.plot(df_exp['Survival'], df_exp['Time'],
+            alpha=0.5, color=color_dict['experimental'], linewidth=1)
+    if df_combo is not None:
+        ax.plot(df_combo['Survival'], df_combo['Time'],
+                color=color_dict['combo'], linewidth=1.5)
+    ax.plot(df_ind['Survival'], df_ind['Time'],
+            color=color_dict['HSA'], linewidth=1.5)
+    if label is not None:
+        ax.set_title(label)
+    ax.set_xlabel('')
+    ax.set_xlim(0, 100)
+    ax.set_ylim(-100)
+    ax.set_yticks(ticks)
+    ax.axes.xaxis.set_ticklabels([])
+
+    return ax
 
 def plot_between_hsa_suppl(cox_df: pd.DataFrame, data_dir: str, pred_dir: str) -> plt.figure:
     tmp1 = cox_df[(cox_df['Model'] == 'between')]
@@ -136,8 +168,12 @@ def plot_between_hsa_suppl(cox_df: pd.DataFrame, data_dir: str, pred_dir: str) -
     cols = 3
     rows = int(np.ceil(tmp.shape[0]/cols))
 
-    fig, axes = plt.subplots(rows, cols, sharey=True, figsize=(7, 13), 
-                             subplot_kw=dict(box_aspect=0.5), dpi=600)
+    if waterfall:
+        figsize = (7, rows*3)
+    else:
+        figsize = (7, rows*2)
+    fig, axes = plt.subplots(rows, cols, sharey=True, 
+                             figsize=figsize, dpi=600)
     sns.despine()
     flat_axes = axes.flatten()
 
@@ -152,9 +188,10 @@ def plot_between_hsa_suppl(cox_df: pd.DataFrame, data_dir: str, pred_dir: str) -
         obs_ctrl = pd.read_csv(f'{data_dir}/{name_b}.clean.csv')
         independent = pd.read_csv(f'{pred_dir}/{name_a}-{name_b}_combination_predicted_ind.csv')
         additive = pd.read_csv(f'{pred_dir}/{name_a}-{name_b}_combination_predicted_add.csv')
-
-        plot_survivals(obs_ctrl, obs_exp, obs_ab, additive,
-                    independent, flat_axes[i], label=name_ab)
+        if waterfall:
+            flat_axes[i] = plot_waterfall_hsa_only(obs_ctrl, obs_exp, independent, ax=flat_axes[i], label=label)
+        else:
+            flat_axes[i] = plot_survivals_hsa_only(obs_ctrl, obs_exp, independent, ax=flat_axes[i], label=label)
 
     return fig
 
@@ -170,12 +207,10 @@ def main():
     data_dir = config_dict['data_dir']
     pred_dir = config_dict['pred_dir']
     fig_dir = config_dict['fig_dir']
-    fig_add = plot_additivity_suppl(cox_df, data_dir, pred_dir)
-    fig_btn = plot_between_hsa_suppl(cox_df, data_dir, pred_dir)
+    fig = plot_all_curves(sheet, data_dir, pred_dir, waterfall=is_waterfall)
 
-    fig_add.savefig(f'{fig_dir}/suppl_additive_survival_plots.pdf',
+    fig.savefig(f'{fig_dir}/{args.dataset}_survival_plots.pdf',
                     bbox_inches='tight', pad_inches=0.1)
-    fig_btn.savefig(f'{fig_dir}/suppl_between_hsa_survival_plots.pdf',
                     bbox_inches='tight', pad_inches=0.1)
 
 
