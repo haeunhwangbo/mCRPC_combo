@@ -139,7 +139,7 @@ def plot_survivals_hsa_only(df_control, df_exp, df_ind, ax, df_combo=None, label
     ax.set_ylim(0, 105)
     ax.set_yticks(ticks)
     ax.xaxis.set_major_locator(plticker.MultipleLocator(6))
-    ax.axes.xaxis.set_ticklabels([])
+    #ax.axes.xaxis.set_ticklabels([])
 
     return ax
 
@@ -194,7 +194,7 @@ def plot_all_curves(sheet: pd.DataFrame, data_dir: str, pred_dir: str, waterfall
         figsize = (7, rows*3)
     else:
         figsize = (7, rows*2)
-    fig, axes = plt.subplots(rows, cols, sharey=True, 
+    fig, axes = plt.subplots(rows, cols, sharey=True, constrained_layout=True,
                              figsize=figsize, dpi=600)
     sns.despine()
     flat_axes = axes.flatten()

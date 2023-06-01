@@ -40,8 +40,7 @@ def calculate_success_prob(input_df: pd.DataFrame, i: int, data_dir: str, pred_d
     name_a = input_df.at[i, 'Experimental']
     name_b = input_df.at[i, 'Control']
 
-    n_combo = max(input_df.at[i, 'N_control'].astype(int), 
-                  input_df.at[i, 'N_experimental'].astype(int))
+    n_combo = 500
 
     # import prediction
     independent = pd.read_csv(
